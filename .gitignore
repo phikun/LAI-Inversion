@@ -133,5 +133,5 @@ dmypy.json
 *.geotiff
 
 # Source data folder
-"data/MODIS LAI/"
+data/MODIS LAI/
 data/ZhangBei/
