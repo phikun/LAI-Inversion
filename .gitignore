@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# GeiTiff data, because there are lots of GeoTiff files!
+*.tif
+*.geotiff
