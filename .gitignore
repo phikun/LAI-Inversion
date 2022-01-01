@@ -131,3 +131,7 @@ dmypy.json
 # GeiTiff data, because there are lots of GeoTiff files!
 *.tif
 *.geotiff
+
+# Source data folder
+".data/MODIS LAI"
+.data/ZhangBei
