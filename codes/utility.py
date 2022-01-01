@@ -2,7 +2,7 @@
 # LAI Inversion: 用 MODIS 地表反射率数据和 ProSAIL 模型反演叶面积指数
 # 常用函数，包括 GeoTiff 类的定义、GeoTiff 的输入输出等
 
-# Author: __phi__ (201711051122@mail.bnu.edu.cn)
+# Author: phikun (201711051122@mail.bnu.edu.cn)
 # Date: 2022.01.01
 
 from typing import Union, Tuple, List
