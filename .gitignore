@@ -135,3 +135,6 @@ dmypy.json
 # Source data folder
 data/MODIS LAI/
 data/ZhangBei/
+
+# Test folder
+test/
