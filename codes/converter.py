@@ -15,7 +15,7 @@ import utility as util
 
 
 def raster2fishnet(raster_file: str) -> gpd.GeoDataFrame:
-    """栅格转渔网，每个 Polygon 的属性是该像元各波段的值；忽略 NoData!"""
+    """栅格转渔网，每个 Polygon 的属性是该像元各波段的值，并在属性表中添加各像元的行列号；忽略 NoData!"""
     (data, info) = util.read_geotiff(raster_file)
 
     # Step1: 生成渔网的角点坐标
@@ -30,6 +30,7 @@ def raster2fishnet(raster_file: str) -> gpd.GeoDataFrame:
     # Step2: 按行优先的顺序遍历栅格，生成 Polygon，且属性值即是像素值
     polygons: List[Polygon] = []
     values = []
+    (row_indices, col_indices) = ([], [])
     for i in range(n_rows):
         for j in range(n_cols):
             if data[i, j] == info.ndv:  # 忽略 NoDataValue
@@ -42,9 +43,11 @@ def raster2fishnet(raster_file: str) -> gpd.GeoDataFrame:
             polygon = Polygon(pnts)
             polygons.append(polygon)
             values.append(data[i, j])
+            row_indices.append(i)
+            col_indices.append(j)
 
     # Step3: 生成 GeoDataFrame 并返回
-    gdf = gpd.GeoDataFrame(pd.DataFrame({"Value": values}), geometry=polygons, crs=info.proj)
+    gdf = gpd.GeoDataFrame(pd.DataFrame({"Value": values, "Row": row_indices, "Column": col_indices}), geometry=polygons, crs=info.proj)
     return gdf
 
 
