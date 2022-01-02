@@ -138,7 +138,7 @@ data/MODIS LAI/
 data/ZhangBei/
 
 # ProSAIL model in MATLAB
-codes/PROSAIL_5B_MATLAB
+codes/PROSAIL_5B_MATLAB/
 
 # Test folder
 test/
