@@ -54,9 +54,18 @@ class OyMpInvertor:
         ref_lai = dict(means)
         return ref_lai        
 
+    def __invert_one_pixcel(self, row: int, col: int):
+        """给出像元的行列号，反演一个像元的值"""
+        # Step1: 获取先验信息，构造代价函数
+        # Step2: 代价函数最优化
+
     def run(self):
         # Step0: 用 SPOT 的结果合成 LAI 参考值
-        ref_lai = self.__get_ref_lai()
+        # ref_lai = self.__get_ref_lai()
+
+        # Step1: 逐像元反演
+        for (row, col) in self.__indices:
+            pass
 
 
 if __name__ == "__main__":
