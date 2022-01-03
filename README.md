@@ -6,3 +6,5 @@
 ### References
 
 - MODIS 光谱响应函数下载：https://nwpsaf.eu/downloads/rtcoef_rttov12/ir_srf/rtcoef_eos_1_modis_srf.html
+
+- 各波段不确定性数据来源：https://modis-land.gsfc.nasa.gov/ValStatus.php?ProductID=MOD09#
