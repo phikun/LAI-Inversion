@@ -20,21 +20,23 @@ import utility as util
 
 # 一期、多个像元的反演器，包含了需要像元的行列号索引，逐个像元进行反演
 class OyMpInvertor:
-    def __init__(self, yearday: str, indices=None, bands: Collection[str]=None, model_params: Collection[str]=None):
+    def __init__(self, yearday: str, tts: float, tto: float, psi: float, indices=None, bands: Collection[str]=None, model_params: Collection[str]=None):
         """
         构造函数
-        :param yearday:      待反演的年份和日序，例如 2000049 表示 2000 年第 49 天
-        :param indices:      待反演像元的索引，若为 None 则指定是该区域内所有完全落入 SPOT 影像范围内的栅格
-        :param bands:        反演用到的波段，若为 None 则表示使用全部 b01~b07 共 7 个波段
-        :param model_params: 要用到的 ProSAIL 模型参数，若为 None 则使用所有参数
+        :param yearday:       待反演的年份和日序，例如 2000049 表示 2000 年第 49 天
+        :param tts, tto, psi: 太阳天顶角、观测天顶角、相对方位角，直接在 ProSAIL 模型中指定
+        :param indices:       待反演像元的索引，若为 None 则指定是该区域内所有完全落入 SPOT 影像范围内的栅格
+        :param bands:         反演用到的波段，若为 None 则表示使用全部 b01~b07 共 7 个波段
+        :param model_params:  要用到的 ProSAIL 模型参数，若为 None 则使用所有参数
         """
         self.__lai_path = "../data/MODIS LAI/"  # MODIS LAI 的路径
         self.__ref_path = "../data/MODIS SR/"   # MODIS 地表反射率的路径
         self.__spot_file = "../data/ZhangBei/SPOTZhangbei20020809TOA_VarBioMaps/SPOTZhangbei20020809TOA_VarBioMaps.bil"  # SPOT 的高分辨率反演结果，其第一个波段恰好是有效叶面积指数
         self.__yearday = yearday
+        self.__obs_geom = {"tts": tts, "tto": tto, "psi": psi}  # 观测几何
 
         self.__bands = bands if bands is not None else ["b01", "b02", "b03", "b04", "b05", "b06", "b07"]
-        self.__model_params = model_params if model_params is not None else ["N", "Cab", "Car", "Cbrown", "Cw", "Cm", "LIDFa", "LIDFb", "TypeLidf", "LAI", "hspot", "tts", "tto", "psi", "psoil"]
+        self.__model_params = model_params if model_params is not None else ["N", "Cab", "Cw", "Cm", "LIDFa", "LAI", "hspot", "psoil"]
         self.__opt_param_file = "../data/optimize_params.json"  # 代价函数优化的用到参数，因为 gdal 和 MATLAB 运行时冲突，所以单开一个进程做优化
 
         if indices is not None:
@@ -101,8 +103,9 @@ class OyMpInvertor:
                       "params"  : self.__model_params,  # ProSAIL 模型参数
                       "LAI-Mean": lai_mean,             # 先验知识：LAI 均值
                       "LAI-Std" : lai_std}              # 先验知识：LAI 标准差
+        opt_params.update(self.__obs_geom)
         with open(self.__opt_param_file, "w") as fout:
-            json.dump(opt_params, fout)
+            json.dump(opt_params, fout)  # 把光谱参数、模型参数和观测几何一并写入文件中
 
         # Step2: 代价函数最优化
 
@@ -122,8 +125,9 @@ if __name__ == "__main__":
     yearday = "2002225"     # 8 月 8~10 日对应第 230~232 天，在第 225~232 天的合成产品中
     bands = ["b01", "b02"]  # 只用红和近红外的反射率
     model_params = ["LAI", "LIDFa", "Cab", "Cm", "N"]
+    (tts, tto, psi) = (36.2, 0.0, 0.0)  # 经计算，采样地 8 月 9 日上午 10:00 的太阳天顶角是 36.2 度，观测天顶角 == 0，所以相对方位角置 0 即可
 
-    inverter = OyMpInvertor(yearday, bands=bands, model_params=model_params)
+    inverter = OyMpInvertor(yearday, tts, tto, psi, bands=bands, model_params=model_params)
     inverter.run()
 
     print("Finished.")

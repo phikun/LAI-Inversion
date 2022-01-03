@@ -5,7 +5,7 @@
 # Author: __phi__ (201711051122@mail.bnu.edu.cn)
 # Date: 2021.11.11
 
-from typing import Union, Tuple, List
+from typing import Tuple, List, Dict
 from scipy.interpolate import interp1d
 import numpy as np
 import os
@@ -34,7 +34,8 @@ class pyprosail:
 
     def run(self, N: float=1.5, Cab: float=50.0, Car: float=8.0, Cbrown: float=0.0, Cw: float=0.015, Cm: float=0.005, 
                       LIDFa: float=57.0, LIDFb: float=0.0, TypeLidf: int=2,
-                      LAI: float=3.5, hspot: float=0.2, tts: float=30.0, tto: float=0.0, psi: float=0.0, psoil: float=1.0):
+                      LAI: float=3.5, hspot: float=0.2, tts: float=30.0, tto: float=0.0, psi: float=0.0, psoil: float=1.0) \
+        -> Tuple[Dict[str, float], np.ndarray]:
         """
         Main function of ProSail model, and return reflectance of each wavelength
         :param N:      in PROSEPCT, structure coefficient, number of leaf layers
@@ -52,7 +53,7 @@ class pyprosail:
         :param tto:      in SAIL, observer zenith angle (°)
         :param psi:      in SAIL, relatively azimuth (°)
         :param psoil:    in SAIL, ratio of day soil
-        :return: 返回 MODIS 第 1~7 波段各波段的反射率
+        :return: 返回 MODIS 第 1~7 波段各波段的反射率，及 0~2500nm 的反射率向量
         """
         assert TypeLidf in {1, 2}  # There are only 2 options of typeLidf
 
@@ -62,9 +63,12 @@ class pyprosail:
         ref[400:] = np.array(tmp).squeeze()       # 把最初 400 个波长空出来，方便用 MODIS 的光谱响应函数合成
 
         if self.__filter_flag is False:           # 不要光谱响应函数，返回中心波长的反射率
-            return ref[self.__central_wl]
+            band_ref = ref[self.__central_wl]
         else:                                     # 要光谱响应函数，按光谱响应函数加权后返回 
-            return [np.sum(ref * self.__filter_function[i]) for i in range(self.__n_bands)]
+            band_ref = [np.sum(ref * self.__filter_function[i]) for i in range(self.__n_bands)]
+        
+        band_names = [f"b{band:02d}" for band in range(1, self.__n_bands + 1)]  # ["b01", "b02", ..., "b07"]
+        return (dict(zip(band_names, band_ref)), ref)
 
     @staticmethod
     def __get_filter_param_one_band(fname: str) -> np.ndarray:

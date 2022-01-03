@@ -140,5 +140,8 @@ data/ZhangBei/
 # ProSAIL model in MATLAB
 codes/PROSAIL_5B_MATLAB/
 
+# Dynamic parameters in two processes
+data/optimize_params.json
+
 # Test folder
 test/
