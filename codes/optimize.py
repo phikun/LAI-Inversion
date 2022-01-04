@@ -15,7 +15,7 @@ from time import perf_counter
 import numpy as np
 import json
 
-from GA import GA as myGA       # 我自己手动实现的遗传算法
+from GA import GA as myGA           # 我自己手动实现的遗传算法，效率太低了，舍弃
 
 
 # 代价函数类，覆写 __call__ 方法实现类似于函数调用的特性
@@ -75,30 +75,40 @@ class loss_function:
         self.ub = [params[param]["ub"] for param in self.__model_params]       # 所有用到的 ProSAIL 参数取值范围的上端点 upper bound
 
 
-if __name__ == "__main__":
-    print("Hello World!")
-    seed(42)
+def optimize_by_skoGA() -> dict:
+    """用缓存优化的 scikit-opt 库实现的遗传算法优化代价函数，以字典形式返回最优的 x, y，每步的 y 值，及程序运行用时"""
     st = perf_counter()
 
     func = loss_function()
     (x0, lb, ub) = (func.x0, func.lb, func.ub)
     n_dim = len(x0)
 
-    set_run_mode(func, "cached")  # 缓存加速，遗传算法后期动的少，这应该很管用
-
-    print(lb)
-    print(ub)
+    set_run_mode(func, "cached")              # 缓存加速，遗传算法后期动的少，这样很管用
     (n_pop, max_iter, eps) = (50, 200, 1E-7)  # scikit-opt 实现的遗传算法的默认参数
 
     ga = skoGA(func, n_dim, size_pop=n_pop, max_iter=max_iter, lb=lb, ub=ub, precision=eps)  # skoGA
     (best_x, best_y) = ga.run()
+    et = perf_counter()
+
+    y_history = ga.all_history_Y  # 每次迭代的 y，可用于画图查看
+    
+    res = {"best_x": best_x.tolist(), "best_y": best_y[0],
+           "time": round(et - st),
+           "y_history": y_history}
+    return res
+
+
+if __name__ == "__main__":
+    print("Hello World!")
+    seed(42)
+
+    dic = optimize_by_skoGA()
+
+    output_file = "../data/optimitze_results.json"  # 结果文件，把优化结果传回主进程
+    with open(output_file, "w") as fout:
+        json.dump(dic, fout)
 
     # ga = myGA(func, lb, ub, n_pop=n_pop, p_mutation=0.2, max_iter=max_iter)  # myGA，效率太低了，所以就用 scikit-opt 实现的遗传算法
     # (best_x, best_y, xs, ys) = ga.implement()
-    print("best_x:", best_x)
-    print("best_y:", best_y)
-
-    et = perf_counter()
-    print(f"time = {round(et - st)}s.")
 
     print("Finished.")
