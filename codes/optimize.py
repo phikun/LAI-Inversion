@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # LAI Inversion: 用 MODIS 地表反射率数据和 ProSAIL 模型反演叶面积指数
-# 优化器：调用 scikit-opt 或自己手动实现的遗传算法优化代价函数
+# 优化器：调用 scikit-opt 或自己手动实现的遗传算法优化代价函数：【还是 scikit-opt 实现的遗传算法效率更高】
 # 静态参数从 ../data/optimize_information.json 读入，动态参数从 ../data/optimize_params.json 中读入
 # 【因为 MATLAB Runtime 和 gdal 冲突，所以把优化的部分单甩出一个进程】
 
@@ -8,10 +8,14 @@
 # Date: 2022.01.03
 
 from prosaillib import pyprosail
+from sko.tools import set_run_mode  # scikit-opt 加速魔法
+from sko.GA import GA as skoGA      # scikit-opt 库实现的遗传算法
+from numpy.random import seed
 from time import perf_counter
-from sko.GA import GA
 import numpy as np
 import json
+
+from GA import GA as myGA       # 我自己手动实现的遗传算法
 
 
 # 代价函数类，覆写 __call__ 方法实现类似于函数调用的特性
@@ -32,13 +36,14 @@ class loss_function:
         param_dic.update(self.__static_param_dic)  # 把所有静态参数和可变参数合并，作为 ProSAIL 模型的输入
         (band_ref, _) = self.__prosail.run(**param_dic)
 
-        lai = x[self.__lai_index]
+        lai = x[self.__lai_index]  # ; print(f"lai = {lai}")
         values = np.zeros(len(self.__bands) + 1)
         values[0] = (lai - self.__lai_mean) ** 2 / self.__lai_std  # 损失函数中先验知识项
         for (idx, band) in enumerate(self.__bands, 1):
             values[idx] = (band_ref[band] - self.__ref[band]) ** 2 / self.__band_sigma[band]  # 各波段项，以不确定度的倒数作为权重
         
-        res = values.sum()
+        res = values.sum()  # ; print(f"loss = {values}")
+        res = 1E8 if np.isnan(res) else res  # 防止出现 NaN 值影响结果
         return res
 
     def __get_dynamic_info(self, fname: str):
@@ -72,18 +77,24 @@ class loss_function:
 
 if __name__ == "__main__":
     print("Hello World!")
+    seed(42)
     st = perf_counter()
 
     func = loss_function()
     (x0, lb, ub) = (func.x0, func.lb, func.ub)
     n_dim = len(x0)
 
+    set_run_mode(func, "cached")  # 缓存加速，遗传算法后期动的少，这应该很管用
+
     print(lb)
     print(ub)
-    (n_pop, max_iter, eps) = (40, 400, 1E-7)
+    (n_pop, max_iter, eps) = (50, 200, 1E-7)  # scikit-opt 实现的遗传算法的默认参数
 
-    ga = GA(func, n_dim, size_pop=n_pop, max_iter=max_iter, lb=lb, ub=ub, precision=eps)
+    ga = skoGA(func, n_dim, size_pop=n_pop, max_iter=max_iter, lb=lb, ub=ub, precision=eps)  # skoGA
     (best_x, best_y) = ga.run()
+
+    # ga = myGA(func, lb, ub, n_pop=n_pop, p_mutation=0.2, max_iter=max_iter)  # myGA，效率太低了，所以就用 scikit-opt 实现的遗传算法
+    # (best_x, best_y, xs, ys) = ga.implement()
     print("best_x:", best_x)
     print("best_y:", best_y)
 
