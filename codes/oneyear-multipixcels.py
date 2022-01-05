@@ -141,9 +141,8 @@ class OyMpInvertor:
         return best_lai
 
     def run(self):
-        # Step1: 逐像元反演，很慢
+        # Step1: 逐像元反演
         lai_values = [self.__invert_one_pixcel(row, col) for (row, col) in tqdm(self.__indices)]
-        inv_lai = dict(self.__indices, lai_values)
         
         # Step2: 用 SPOT 的结果合成 LAI 参考值
         ref_lai = self.__get_ref_lai()
@@ -151,7 +150,7 @@ class OyMpInvertor:
         # Step3: 当期 MODIS LAI 产品的像元值
         modis_lai = self.__get_modis_lai()
 
-        df = pd.DataFrame({"Inversion": inv_lai, "SPOT": ref_lai, "MODIS": modis_lai}, index=self.__indices)  # 先跑起来试试
+        df = pd.DataFrame({"Inversion": lai_values, "SPOT": list(ref_lai.values()), "MODIS": list(modis_lai.values())}, index=self.__indices)
         df.to_excel(self.__output_file, engine="openpyxl", index=True)
     
     @staticmethod

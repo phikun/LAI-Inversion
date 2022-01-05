@@ -143,5 +143,10 @@ codes/PROSAIL_5B_MATLAB/
 # Dynamic parameters in two processes
 data/optimize_params.json
 
+# Middle and final results
+data/optimize_results.json
+codes/middle_results.txt
+results/
+
 # Test folder
 test/

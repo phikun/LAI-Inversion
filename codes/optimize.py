@@ -94,7 +94,7 @@ def optimize_by_skoGA() -> dict:
     
     res = {"best_x": best_x.tolist(), "best_y": best_y[0],
            "time": round(et - st),
-           "y_history": y_history}
+           "y_history": [ys.tolist() for ys in y_history]}
     return res
 
 
