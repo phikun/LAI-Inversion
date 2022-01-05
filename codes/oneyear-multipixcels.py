@@ -123,7 +123,7 @@ class OyMpInvertor:
 
         # Step2: 代价函数最优化
         cmd = "python optimize.py"                      # 单开一个进程做优化
-        output_file = "../data/optimitze_results.json"  # 由 optimize.py 写出的优化结果文件，从中读入优化信息
+        output_file = "../data/optimize_results.json"  # 由 optimize.py 写出的优化结果文件，从中读入优化信息
         return_value = os.system(cmd)
 
         with open(output_file, "r") as fin:

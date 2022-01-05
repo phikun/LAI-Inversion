@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     dic = optimize_by_skoGA()
 
-    output_file = "../data/optimitze_results.json"  # 结果文件，把优化结果传回主进程
+    output_file = "../data/optimize_results.json"  # 结果文件，把优化结果传回主进程
     with open(output_file, "w") as fout:
         json.dump(dic, fout)
 
