@@ -145,7 +145,7 @@ data/optimize_params.json
 
 # Middle and final results
 data/optimize_results.json
-codes/middle_results.txt
+codes/*results.txt
 results/
 
 # Test folder

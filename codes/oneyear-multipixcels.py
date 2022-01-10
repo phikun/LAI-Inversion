@@ -21,7 +21,7 @@ import utility as util
 
 # 一期、多个像元的反演器，包含了需要像元的行列号索引，逐个像元进行反演
 class OyMpInvertor:
-    def __init__(self, yearday: str, output_file, tts: float, tto: float, psi: float, indices=None, bands: Collection[str]=None, model_params: Collection[str]=None):
+    def __init__(self, yearday: str, output_file: str, tts: float, tto: float, psi: float, indices=None, bands: Collection[str]=None, model_params: Collection[str]=None):
         """
         构造函数
         :param yearday:       待反演的年份和日序，例如 2000049 表示 2000 年第 49 天
@@ -110,8 +110,8 @@ class OyMpInvertor:
         # Step1: 获取 LAI 先验信息和反射率信息，写入 json 文件
         (lai_mean, lai_std) = self.__get_lai_mean_and_std(row, col)
         band_ref = self.__get_band_reflectance(row, col)
-        opt_params = {"bands"   :  self.__bands,        # 用到的波段
-                      "ref"     :  band_ref,            # 每个波段的额反射率
+        opt_params = {"bands"   : self.__bands,         # 用到的波段
+                      "ref"     : band_ref,             # 每个波段的额反射率
                       "params"  : self.__model_params,  # ProSAIL 模型参数
                       "LAI-Mean": lai_mean,             # 先验知识：LAI 均值
                       "LAI-Std" : lai_std}              # 先验知识：LAI 标准差
@@ -123,7 +123,7 @@ class OyMpInvertor:
 
         # Step2: 代价函数最优化
         cmd = "python optimize.py"                      # 单开一个进程做优化
-        output_file = "../data/optimize_results.json"  # 由 optimize.py 写出的优化结果文件，从中读入优化信息
+        output_file = "../data/optimize_results.json"   # 由 optimize.py 写出的优化结果文件，从中读入优化信息
         return_value = os.system(cmd)
 
         with open(output_file, "r") as fin:
