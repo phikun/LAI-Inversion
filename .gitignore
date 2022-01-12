@@ -149,5 +149,8 @@ codes/*results.txt
 codes/logging/
 results/
 
+# Old files
+codes/old-files/
+
 # Test folder
 test/
