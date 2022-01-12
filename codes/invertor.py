@@ -139,9 +139,3 @@ class invertor:
         logger.addHandler(fh)
         logger.addHandler(ch)
         return (logger, fh, ch)  # 把这两个handle都输出，一个区域结束之后断开handle，防止输出数量不断增加
-
-
-if __name__ == "__main__":
-    print("Hello World!")
-
-    print("Finished.")
