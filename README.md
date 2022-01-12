@@ -4,10 +4,10 @@
 
 ### 太阳高度角的计算公式
 
-记 $h_{\rm s}$ 表示太阳高度角，$\varphi,\delta,t$ 分别表示纬度、太阳赤纬、时角（正午是 0），则太阳高度角
-$$
-\sin{h_{\rm s}}=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos t
-$$
+记 hs 表示太阳高度角，φ, δ, t 分别表示纬度、太阳赤纬、时角（正午是 0），则太阳高度角
+
+<img src="http://latex.codecogs.com/svg.latex?\sin{h_{\rm s}}=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos t">
+
 其中太阳赤纬的计算公式是：
 $$
 \sin\delta=\sin\left(360^\circ\cdot\frac{t}{365}\right)\sin{23^\circ 26^\prime}

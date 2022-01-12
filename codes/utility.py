@@ -40,13 +40,17 @@ class GeotiffInfo:
                all([isclose(a, b) for (a, b) in zip(self.trans, other.trans)])  # 只要投影、坐标角点、行列号相同就认为两个栅格属性相同
 
 
-def read_geotiff(fname: str) -> Tuple[np.ndarray, GeotiffInfo]:
-    """读入 GeoTiff 栅格，模仿 MATLAB，返回数据矩阵，和栅格基本参数"""
+def read_geotiff(fname: str, band_id: int=1) -> Tuple[np.ndarray, GeotiffInfo]:
+    """
+    读入 GeoTiff 栅格，模仿 MATLAB，返回数据矩阵，和栅格基本参数
+    :param fname:   栅格数据集名称
+    :param band_id: 波段序号，默认是 1，用于方便地读取张北反演结果中的有效叶面积指数项
+    """
     ds: gdal.Dataset = gdal.Open(fname, gdal.GA_ReadOnly)
     trans = ds.GetGeoTransform()
     proj = ds.GetProjection()
 
-    band: gdal.Band = ds.GetRasterBand(1)
+    band: gdal.Band = ds.GetRasterBand(band_id)
     ndv = band.GetNoDataValue()
     data = band.ReadAsArray()
     dtype = band.DataType

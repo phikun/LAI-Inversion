@@ -14,9 +14,13 @@ import numpy as np
 import utility as util
 
 
-def raster2fishnet(raster_file: str) -> gpd.GeoDataFrame:
-    """栅格转渔网，每个 Polygon 的属性是该像元各波段的值，并在属性表中添加各像元的行列号；忽略 NoData!"""
-    (data, info) = util.read_geotiff(raster_file)
+def raster2fishnet(raster_file: str, raster_band_id: int=1) -> gpd.GeoDataFrame:
+    """
+    栅格转渔网，每个 Polygon 的属性是该像元各波段的值，并在属性表中添加各像元的行列号；忽略 NoData!
+    :param raster_file:    栅格数据集名称
+    :param raster_band_id: 波段序号，默认是 1，用于方便地读取张北反演结果中的有效叶面积指数项
+    """
+    (data, info) = util.read_geotiff(raster_file, band_id=raster_band_id)
 
     # Step1: 生成渔网的角点坐标
     (n_rows, n_cols) = data.shape
