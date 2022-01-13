@@ -111,7 +111,7 @@ class invertor:
         """反演一个栅格的值，baseline，可以在继承时加入预处理和后处理；返回优化得到的最优 LAI"""
         self._calc_and_write_opt_param_to_file(year, daynum, row, col)  # 计算并将需要用到的反演参数写入文件
 
-        cmd = f"python optimize.py -inp {self._opt_param_file} -out {self._opt_result_file}"  # 开一个 Python 进程做优化
+        cmd = f"python optimize.py -i {self._opt_param_file} -o {self._opt_result_file}"  # 开一个 Python 进程做优化
         return_value = os.system(cmd)
 
         dic = self._read_opt_result_from_file()            # 从文件中读入反演结果

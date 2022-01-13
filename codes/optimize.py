@@ -7,26 +7,31 @@
 # Author: phikun (201711051122@mail.bnu.edu.cn)
 # Date: 2022.01.03
 
+from typing import Tuple
 from prosaillib import pyprosail
 from sko.tools import set_run_mode  # scikit-opt 加速魔法
 from sko.GA import GA as skoGA      # scikit-opt 库实现的遗传算法
 from numpy.random import seed
 from time import perf_counter
+from getopt import getopt
 import numpy as np
 import json
+import sys
 
 from GA import GA as myGA           # 我自己手动实现的遗传算法，效率太低了，舍弃
 
 
 # 代价函数类，覆写 __call__ 方法实现类似于函数调用的特性
 class loss_function:
-    def __init__(self):
-        static_info_fname = "../data/optimize_information.json"  # 静态参数，包括各波段的不确定性、各参数的默认值和取值范围
-        dynamic_params_fname = "../data/optimize_params.json"    # 动态参数，包括要使用的波段、各波段的反射率、先验知识、观测几何
-
+    def __init__(self, dynamic_params_fname: str="../data/optimize_params.json", static_info_fname: str="../data/optimize_information.json"):
+        """
+        构造函数
+        :param dynamic_params_fname: 动态参数，包括要使用的波段、各波段的反射率、先验知识、观测几何
+        :param static_info_fname:    静态参数，包括各波段的不确定性、各参数的默认值和取值范围
+        """
         self.__get_dynamic_info(dynamic_params_fname)
         self.__get_static_info(static_info_fname)
-        self.__lai_index = self.__model_params.index("LAI")  # LAI 在模型参数中的位置，用于获取 LAI 的值构造代价函数 
+        self.__lai_index = self.__model_params.index("LAI")  # LAI 在模型参数中的位置，用于获取 LAI 的值构造代价函数
         self.__prosail = pyprosail()  # 默认是按光谱响应函数加权
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
@@ -75,11 +80,11 @@ class loss_function:
         self.ub = [params[param]["ub"] for param in self.__model_params]       # 所有用到的 ProSAIL 参数取值范围的上端点 upper bound
 
 
-def optimize_by_skoGA() -> dict:
+def optimize_by_skoGA(inp_file: str, out_file: str, model_info_file: str):
     """用缓存优化的 scikit-opt 库实现的遗传算法优化代价函数，以字典形式返回最优的 x, y，每步的 y 值，及程序运行用时"""
     st = perf_counter()
 
-    func = loss_function()
+    func = loss_function(dynamic_params_fname=inp_file, static_info_fname=model_info_file)
     (x0, lb, ub) = (func.x0, func.lb, func.ub)
     n_dim = len(x0)
 
@@ -92,21 +97,33 @@ def optimize_by_skoGA() -> dict:
 
     y_history = ga.all_history_Y  # 每次迭代的 y，可用于画图查看
     
+    # 把优化结果写入文件、传回主进程
     res = {"best_x": best_x.tolist(), "best_y": best_y[0],
            "time": round(et - st),
            "y_history": [ys.tolist() for ys in y_history]}
-    return res
+    with open(out_file, "w") as fout:
+        json.dump(res, fout)
+
+
+def parse_cmd_input() -> Tuple[str, str, str]:
+    """获取命令行参数，根据特定的输入进行优化，依次返回 输入文件、输出文件、模型静态参数文件"""
+    (opt, _) = getopt(sys.argv[1:], "i:o:", ["model-info="])  # -i -> 输入文件；-o -> 输出文件；--model-info= 模型静态参数文件
+    dic = {"-i": "../data/optimize_params.json",
+           "-o": "../data/optimize_results.json",
+           "--model-info": "../data/optimize_information.json"}
+    print(opt)  # Test
+    for (param, value) in opt:
+        dic[param] = value
+    return (dic["-i"], dic["-o"], dic["--model-info"])  # 依次返回 输入文件、输出文件、模型静态参数文件
 
 
 if __name__ == "__main__":
     print("Hello World!")
     seed(42)
 
-    dic = optimize_by_skoGA()
+    (inp_file, out_file, model_info_file) = parse_cmd_input()
 
-    output_file = "../data/optimize_results.json"  # 结果文件，把优化结果传回主进程
-    with open(output_file, "w") as fout:
-        json.dump(dic, fout)
+    optimize_by_skoGA(inp_file, out_file, model_info_file)
 
     # ga = myGA(func, lb, ub, n_pop=n_pop, p_mutation=0.2, max_iter=max_iter)  # myGA，效率太低了，所以就用 scikit-opt 实现的遗传算法
     # (best_x, best_y, xs, ys) = ga.implement()
