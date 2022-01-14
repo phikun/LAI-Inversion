@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # LAI Inversion: 用 MODIS 地表反射率数据和 ProSAIL 模型反演叶面积指数
 # 作业一：一期、多个像元各自反演 LAI，并与 SPOT 高分辨率合成到 500m 分辨率的参考值比较
-# 2021.01.14 更新：取消观测几何参数，因为可以直接从 MODIS 产品中读取；这以添加到基类的 _base_invert_one_pixcel 方法中
+# 2021.01.14 更新：取消观测几何参数，因为可以直接从 MODIS 产品中读取；这已添加到基类的 _base_invert_one_pixcel 方法中
 
 # Author: phikun (201711051122@mail.bnu.edu.cn)
 # Date: 2022.01.12
