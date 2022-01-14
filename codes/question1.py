@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # LAI Inversion: 用 MODIS 地表反射率数据和 ProSAIL 模型反演叶面积指数
 # 作业一：一期、多个像元各自反演 LAI，并与 SPOT 高分辨率合成到 500m 分辨率的参考值比较
+# 2021.01.14 更新：取消观测几何参数，因为可以直接从 MODIS 产品中读取；这以添加到基类的 _base_invert_one_pixcel 方法中
 
 # Author: phikun (201711051122@mail.bnu.edu.cn)
 # Date: 2022.01.12
@@ -18,14 +19,13 @@ import utility as util
 
 
 class OyMpInvertor(invertor):
-    def __init__(self, year: int, daynum: int, output_file: str, tts: float, tto: float, psi: float, 
-                       indices=None, bands: Collection[str]=None, model_params: Collection[str]=None, spot_band_id: int=1):
+    def __init__(self, year: int, daynum: int, output_file: str, indices=None, 
+                       bands: Collection[str]=None, model_params: Collection[str]=None, spot_band_id: int=1):
         """
         构造函数
         :param year:          待反演的年份
         :param daynum:        待反演的日序
         :param output_file:   结果文件，干脆把每个像元反演得到的 LAI、SPOT 向上聚合的 LAI 和 MODIS 同期 LAI 产品的值写到文件里
-        :param tts, tto, psi: 太阳天顶角、观测天顶角、相对方位角，直接在 ProSAIL 模型中指定
         :param indices:       待反演像元的索引，若为 None 则指定是该区域内所有完全落入 SPOT 影像范围内的栅格
         :param bands:         反演用到的波段，若为 None 则表示使用全部 b01~b07 共 7 个波段
         :param model_params:  要用到的 ProSAIL 模型参数，若为 None 则使用所有参数
@@ -37,7 +37,6 @@ class OyMpInvertor(invertor):
 
         (self._year, self._day) = (year, daynum)
         self._output_file = output_file
-        self._obs_geom = {"tts": tts, "tto": tto, "psi": psi}  # 观测几何
 
         self._spot_band_id = spot_band_id
         self._spot_file = "../data/ZhangBei/SPOTZhangbei20020809TOA_VarBioMaps/SPOTZhangbei20020809TOA_VarBioMaps.bil"  # SPOT 反演结果文件
@@ -97,10 +96,9 @@ if __name__ == "__main__":
     (year, day) = (2002, 225)     # 8 月 8~10 日对应第 230~232 天，在第 225~232 天的合成产品中
     bands = ["b01", "b02"]        # 只用红和近红外的反射率
     output_file = "../results/Question1-trueLai.xlsx"  # 输出文件，先写出来再画散点图啥的
-    model_params = ["LAI", "LIDFa", "Cab", "Cm", "N"]
-    (tts, tto, psi) = (36.2, 0.0, 0.0)  # 经计算，采样地 8 月 9 日上午 10:00 的太阳天顶角是 36.2 度，观测天顶角 == 0，所以相对方位角置 0 即可
+    model_params = ["LAI", "LIDFa", "Cab", "Cm", "N", "psoil"]
 
-    inverter = OyMpInvertor(year, day, output_file, tts, tto, psi, bands=bands, model_params=model_params, spot_band_id=2)  # 用真实 LAI
+    inverter = OyMpInvertor(year, day, output_file, bands=bands, model_params=model_params, spot_band_id=2)  # 用真实 LAI
     inverter.run()
 
     print("Finished.")

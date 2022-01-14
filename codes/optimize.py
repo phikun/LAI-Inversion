@@ -111,7 +111,6 @@ def parse_cmd_input() -> Tuple[str, str, str]:
     dic = {"-i": "../data/optimize_params.json",
            "-o": "../data/optimize_results.json",
            "--model-info": "../data/optimize_information.json"}
-    print(opt)  # Test
     for (param, value) in opt:
         dic[param] = value
     return (dic["-i"], dic["-o"], dic["--model-info"])  # 依次返回 输入文件、输出文件、模型静态参数文件

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # LAI Inversion: 用 MODIS 地表反射率数据和 ProSAIL 模型反演叶面积指数
 # 反演器的基类，指定两个问题中共有的做法
+# 2021.01.14 更新：完全不需要计算观测几何参数，因为 MODIS 数据里面已经有了，所以在反演器基类中加入获取观测几何参数的方法
 
 # Author: phikun (201711051122@mail.bnu.edu.cn)
 # Date: 2021.01.11
@@ -40,7 +41,7 @@ class invertor:
 
         self._lai_path = "../data/MODIS LAI/"  # MODIS LAI 的路径
         self._ref_path = "../data/MODIS SR/"   # MODIS 地表反射率的路径
-        self._obs_geom = {"tts": None, "tto": None, "psi": None}  # 观测几何，到子类指定
+        self._obs_geom = {"tts": None, "tto": None, "psi": None}  # 观测几何，通过 self._get_obs_geom 函数指定
 
         self._opt_param_file = opt_param_file
         self._opt_result_file = opt_res_file
@@ -83,10 +84,21 @@ class invertor:
             dic[band] = data[row, col] / 1E4  # MODIS 反射率产品的 scale factor 是 0.0001
         return dic
 
+    def _get_obs_geom(self, year: int, daynum: int, row: int, col: int):
+        """获取当期的观测几何参数：太阳天顶角、观测天顶角、相对方位角，数值单位都是度；直接写到 self._obs_geom 中"""
+        tts_file = glob(f"{self._ref_path}*{year}{daynum:03d}*sur_refl_szen.tif")[0]
+        tto_file = glob(f"{self._ref_path}*{year}{daynum:03d}*sur_refl_vzen.tif")[0]
+        psi_file = glob(f"{self._ref_path}*{year}{daynum:03d}*sur_refl_raz.tif")[0]
+
+        for (key, fname) in zip(["tts", "tto", "psi"], [tts_file, tto_file, psi_file]):
+            (data, _) = util.read_geotiff(fname)
+            self._obs_geom[key] = data[row, col] / 100  # 角度文件的尺度因子都是 0.01
+
     def _calc_and_write_opt_param_to_file(self, year: int, daynum: int, row: int, col: int):
         """获取反演要用到的参数（LAI 先验知识、各波段的反射率），并写入 self._opt_param_file 文件"""
         (lai_mean, lai_std) = self._get_lai_mean_and_std(year, daynum, row, col)
         band_ref = self._get_band_reflectance(year, daynum, row, col)
+        self._get_obs_geom(year, daynum, row, col)      # 从 MODIS 反射率数据中读取观测几何参数
         opt_params = {"bands"   : self._bands,          # 用到的波段
                       "ref"     : band_ref,             # 每个波段的额反射率
                       "params"  : self._model_params,   # ProSAIL 模型参数
