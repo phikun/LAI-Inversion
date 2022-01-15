@@ -14,6 +14,8 @@ MODIS 地表反射率产品和 LAI 产品来自网站：https://modis.ornl.gov/c
 
 为将 ProSAIL 模型的模拟结果聚合到 MODIS 传感器上，从网站：https://nwpsaf.eu/downloads/rtcoef_rttov12/ir_srf/rtcoef_eos_1_modis_srf.html 获取搭载在 Terra 卫星上的 MODIS 传感器的光谱响应函数，对 ProSAIL 模型模拟得到的 400~2500nm 各波长的反射率按光谱响应函数加权。
 
+观测几何参数，即太阳天顶角 tts、观测天顶角 tto 和相对方位角 psi 直接从 MODIS 地表反射率产品的 szen、vzen 和 raz 通道中获取。
+
 #### 代价函数和优化方法
 
 根据参考文献 [3]，采用便于操作的代价函数形式：
@@ -26,23 +28,9 @@ MODIS 地表反射率产品和 LAI 产品来自网站：https://modis.ornl.gov/c
 
 优化方法使用经典的遗传算法，这里采用 scikit-opt 库实现的带缓存加速的遗传算法，没有这个库可以`pip install scikit-opt`装一下。想用遗传算法的原因是，一个别的课（计算方法）有个手写遗传算法的作业，我自以为我写的还行（codes/GA.py）想直接拿过来用；然后发现规则定的不太好，容易快速收敛到局部最优，种群在很长时间内动不了，就找了个现成的包直接用。在 Intel Core i7 上优化一个栅格大概 3 分钟。
 
-#### 计算太阳天顶角
-
-ProSAIL 模型中有个参数是太阳高度角，对于问题一，因为只有一期，在网站：http://www.ab126.com/Geography/1904.html 手动输入经纬度、年月日和时间，它能算出太阳高度角，拿 90° 减去太阳高度角就是太阳天顶角。
-
-对于问题二，一个一个手动计算比较麻烦，然后我编写程序网络交互的能力有限，不会（也可能是懒得）分析这个网站，就用了个简单的计算太阳高度角（天顶角）的方法：经过百度，记 hs 表示太阳高度角，φ, δ, t, day 分别表示纬度、太阳赤纬、时角（正午是 0）、日序，则太阳高度角
-
-<img src="http://latex.codecogs.com/svg.latex?\sin{h_{\rm s}}=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos t">
-
-其中太阳赤纬的计算公式是：
-
-<img src="http://latex.codecogs.com/svg.latex?\sin\delta=\sin\left(360^\circ\cdot\frac{{\rm day}-80}{365}\right)\sin{23^\circ 26^\prime}">
-
-太阳赤纬基本是模拟太阳从春分点开始，先向北回归线（23°26‘）移动、再向南回归线移动的过程，春分点的日序大概是 80（3 月 21 日，31+28+21=80），所以需要拿实际的日序减去 80 后再算。
-
 ### 代码结构
 
-做本实验的代码在 codes/ 文件夹中。
+做本实验的代码在 codes/ 文件夹中。除了我们常用的 `numpy`、`pandas`和`geopandas`、`gdal`库之外，还用了`tqdm`显示进度条、用`scikit-opt`现成的遗传算法做优化、为使代码规范用了`overrides`库明确标明我要覆写某个方法，这些库都可以 pip 装上。
 
 - utility.py 和 converter.py：调用 gdal 库读写 GeoTiff 和 ENVI 标准格式文件，并将栅格转成渔网便于统计。
 
