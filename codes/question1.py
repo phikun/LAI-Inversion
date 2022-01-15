@@ -93,9 +93,9 @@ class OyMpInvertor(invertor):
 if __name__ == "__main__":
     print("Hello World!")
 
-    (year, day) = (2002, 225)     # 8 月 8~10 日对应第 230~232 天，在第 225~232 天的合成产品中
+    (year, day) = (2002, 217)     # 8 月 8~10 日对应第 220~222 天，在第 217~224 天的合成产品中
     bands = ["b01", "b02"]        # 只用红和近红外的反射率
-    output_file = "../results/Question1-trueLai.xlsx"  # 输出文件，先写出来再画散点图啥的
+    output_file = "../results/Question1-rightAngle-rightDay.xlsx"  # 输出文件，先写出来再画散点图啥的
     model_params = ["LAI", "LIDFa", "Cab", "Cm", "N", "psoil"]
 
     inverter = OyMpInvertor(year, day, output_file, bands=bands, model_params=model_params, spot_band_id=2)  # 用真实 LAI
